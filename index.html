@@ -1607,7 +1607,6 @@ function employeeVisits() {
 
 // ===== EMPLOYEE UPLOAD REPORT =====
 function employeeUpload() {
-alert('عدد العملاء المحملين: ' + db.clients.length);
   return `
     <div class="section-title">📤 رفع تقرير زيارة</div>
     <div class="card">
@@ -1651,11 +1650,13 @@ ${db.clients.map(c => `
       </div>
       <div class="form-group">
         <label class="form-label">📸 إرفاق صور (اختياري)</label>
-        <div class="pest-upload-area" onclick="showToast('تم اختيار الصورة ✅')">
-          <div style="font-size:40px; margin-bottom:8px;">📷</div>
-          <div style="font-size:14px; font-weight:600;">اضغط لإرفاق صور</div>
-          <div style="font-size:12px; color:var(--text-light); margin-top:4px;">صور الآفات أو الأماكن المعالجة</div>
-        </div>
+         <input type="file" id="reportImages" accept="image/*" capture="environment" multiple style="display:none">
+
+<div class="pest-upload-area" onclick="document.getElementById('reportImages').click()">
+  <div style="font-size:40px; margin-bottom:8px;">📷</div>
+  <div style="font-size:14px; font-weight:600;">اضغط لإرفاق صور</div>
+  <div style="font-size:12px; color:var(--text-light); margin-top:4px;">صور التقرير أو الموقع أو الآفات</div>
+</div>
       </div>
      <button class="submit-btn" onclick="saveVisitReport()">
 📋 رفع التقرير
