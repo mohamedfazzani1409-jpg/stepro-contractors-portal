@@ -1607,14 +1607,18 @@ function employeeVisits() {
 
 // ===== EMPLOYEE UPLOAD REPORT =====
 function employeeUpload() {
+alert('عدد العملاء المحملين: ' + db.clients.length);
   return `
     <div class="section-title">📤 رفع تقرير زيارة</div>
     <div class="card">
       <div class="form-group">
         <label class="form-label">اختر العميل</label>
-        <select class="form-select" id="reportClientSelect">
-          <option value="">— اختر العميل —</option>
-        </select>
+       <select class="form-select" id="reportClientSelect">
+<option value="">— اختر العميل —</option>
+${db.clients.map(c => `
+<option value="${c.id}">${c.name}</option>
+`).join('')}
+</select>
       </div>
       <div class="form-group">
         <label class="form-label">نوع الخدمة</label>
@@ -1653,11 +1657,34 @@ function employeeUpload() {
           <div style="font-size:12px; color:var(--text-light); margin-top:4px;">صور الآفات أو الأماكن المعالجة</div>
         </div>
       </div>
-      <button class="submit-btn" onclick="showToast('✅ تم رفع التقرير بنجاح!')">
-        📤 رفع التقرير
-      </button>
+     <button class="submit-btn" onclick="saveVisitReport()">
+📋 رفع التقرير
+</button>
     </div>
   `;
+}
+async function saveVisitReport() {
+  const clientSelect = document.getElementById('reportClientSelect');
+  const clientId = clientSelect ? clientSelect.value : '';
+
+  if (!clientId) {
+    showToast('⚠️ اختر العميل أولاً');
+    return;
+  }
+
+  const report = {
+    clientId: parseInt(clientId),
+    employeeName: currentUser?.name || 'فني',
+    type: 'زيارة فنية',
+    status: 'pending',
+    createdAt: new Date().toISOString()
+  };
+
+  await firebase.database()
+    .ref('serviceVisits')
+    .push(report);
+
+  showToast('✅ تم رفع التقرير وإرساله للإدارة للاعتماد');
 }
 
 // ===== EMPLOYEE CLIENTS =====
@@ -1917,11 +1944,34 @@ function adminSettings() {
 function adminEmergency() {
   return `
     <div class="section-title">🚨 طلبات الطوارئ</div>
+<div class="stats-grid">
 
+<div class="stat-card">
+<div class="stat-number" id="emNew">0</div>
+<div class="stat-label">طلبات جديدة</div>
+</div>
+
+<div class="stat-card">
+<div class="stat-number" id="emProgress">0</div>
+<div class="stat-label">قيد التنفيذ</div>
+</div>
+
+<div class="stat-card">
+<div class="stat-number" id="emDone">0</div>
+<div class="stat-label">تم التنفيذ</div>
+</div>
+
+<div class="stat-card">
+<div class="stat-number" id="emTotal">0</div>
+<div class="stat-label">إجمالي الطلبات</div>
+</div>
+
+</div>
     <div id="emergencyTable">
       <div class="card">جاري تحميل الطلبات...</div>
     </div>
   `;
+  setTimeout(loadEmergencyRequests, 300);
 }
 
 // ===== MODALS =====
@@ -2241,7 +2291,17 @@ async function loadEmergencyRequests() {
       .once('value');
 
     const data = snapshot.val();
+const requests = Object.values(data || {});
 
+const totalCount = requests.length;
+const newCount = requests.filter(r => (r.status || 'جديد') === 'جديد').length;
+const progressCount = requests.filter(r => r.status === 'جاري التنفيذ').length;
+const doneCount = requests.filter(r => r.status === 'تم التنفيذ').length;
+
+if (document.getElementById('emTotal')) document.getElementById('emTotal').textContent = totalCount;
+if (document.getElementById('emNew')) document.getElementById('emNew').textContent = newCount;
+if (document.getElementById('emProgress')) document.getElementById('emProgress').textContent = progressCount;
+if (document.getElementById('emDone')) document.getElementById('emDone').textContent = doneCount;
     if (!data) {
       container.innerHTML = '<tr><td colspan="6">لا توجد طلبات</td></tr>';
       return;
@@ -2263,26 +2323,20 @@ async function loadEmergencyRequests() {
         <div style="font-size:14px; line-height:2;">
           <b>العميل:</b> ${item.clientName || '-'}<br>
           <b>الموقع:</b> ${item.location || '-'}<br>
-          <b>الوصف:</b> ${item.description || '-'}<br>
+          <b>الوصف:</b><br>
+<div style="white-space:pre-wrap; word-break:break-word; margin-top:6px;">
+${item.description || '-'}
+</div>
           <b>الحالة:</b>
 <span class="status-badge active">${item.status || 'جديد'}</span>
           <br><b>تاريخ الطلب:</b> ${item.createdAt ? formatDateTime(item.createdAt).replace(/'/g, "") : "-"}
           <br><b>آخر تحديث:</b> ${item.updatedAt ? formatDateTime(item.updatedAt).replace(/'/g, "") : "-"}
         </div>
 
-        <button class="submit-btn" style="margin-top:12px; padding:8px 12px; font-size:13px;"
-  onclick="showEmergencyDetails(
-    '${item.clientName || "-"}',
-    '${item.location || "-"}',
-    '${item.description || "-"}',
-    '${item.status || "جديد"}'
-    '${item.createdAt ? formatDateTime(item.createdAt).replace(/'/g, "") : "-"}'
-  )">
-  عرض التفاصيل
-</button>
-<button class="submit-btn" style="margin-top:10px; padding:8px 12px; font-size:13px; background:#16a34a;"
-  onclick="markEmergencyDone('${key}')">
-   🔄 تغيير حالة الطلب 
+       
+  
+<button class="submit-btn" style="margin-top:10px; padding:8px 12px; font-size:13px; background:#16a34a;" onclick="markEmergencyDone('${key}')">
+🔄 تغيير حالة الطلب
 </button>
       </div>
     </td>
@@ -2351,15 +2405,7 @@ async function markEmergencyDone(key) {
         showToast('❌ فشل تحديث الحالة');
     }
 }
-function showEmergencyDetails(client, location, description, status, createdAt) {
-    alert(
-        'العميل: ' + client +
-        '\n\nالموقع: ' + location +
-        '\n\nالوصف: ' + description +
-        '\n\nالحالة: ' + status +
-        '\n\nتاريخ الطلب: ' + createdAt
-    );
-}
+
        
 function showToast(msg) {
   const t = document.getElementById('toast');
