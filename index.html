@@ -1681,20 +1681,24 @@ async function saveVisitReport() {
   const report = {
     clientId: parseInt(clientId),
     employeeName: currentUser?.name || 'فني',
-    type: 'زيارة فنية',
+    type: document.getElementById('serviceType')?.value || 'زيارة فنية',
+    materials: document.getElementById('materialsInput')?.value || '',
+    notes: document.getElementById('notesInput')?.value || '',
     status: 'pending',
     createdAt: new Date().toISOString()
-  };
+};
 if (!db.reports) db.reports = [];
 
 db.reports.unshift({
-  id: Date.now(),
-  clientId: parseInt(clientId),
-  client: db.clients.find(c => c.id == clientId)?.name || 'عميل',
-  type: report.type,
-  tech: report.employeeName,
-  date: new Date().toLocaleDateString('ar-SA'),
-  status: 'مكتمل'
+    id: Date.now(),
+    clientId: parseInt(clientId),
+    client: db.clients.find(c => c.id == clientId)?.name || 'عميل',
+    type: report.type,
+    tech: report.employeeName,
+    date: new Date().toLocaleDateString('ar-SA'),
+    materials: report.materials,
+    notes: report.notes,
+    status: 'مكتمل'
 });
 
 saveDB();
@@ -2476,6 +2480,8 @@ function openReportDetails(id) {
         'الفني: ' + report.tech + '\n\n' +
         'نوع الزيارة: ' + report.type + '\n\n' +
         'التاريخ: ' + report.date + '\n\n' +
+        'المواد المستخدمة: ' + (report.materials || 'غير مسجل') + '\n\n' +
+'الملاحظات: ' + (report.notes || 'لا توجد') + '\n\n' +
         'الحالة: ' + report.status
     );
 }
