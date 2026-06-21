@@ -2294,7 +2294,39 @@ function openModal(type) {
     if (pwEl) pwEl.textContent = password;
   }
 }
+function generateVisitSchedule(startDate, visitsCount, frequency) {
+    const schedule = [];
 
+    if (!startDate || frequency === 'manual') {
+        return schedule;
+    }
+
+    const start = new Date(startDate);
+
+    for (let i = 0; i < visitsCount; i++) {
+        const visitDate = new Date(start);
+
+        if (frequency === 'monthly') {
+            visitDate.setMonth(start.getMonth() + i);
+        } else if (frequency === '15days') {
+            visitDate.setDate(start.getDate() + (i * 15));
+        } else if (frequency === '10days') {
+            visitDate.setDate(start.getDate() + (i * 10));
+        } else if (frequency === 'weekly') {
+            visitDate.setDate(start.getDate() + (i * 7));
+        }
+
+        schedule.push({
+            id: Date.now() + i,
+            number: i + 1,
+            date: visitDate.toISOString().split('T')[0],
+            status: 'مجدولة',
+            reportId: null
+        });
+    }
+
+    return schedule;
+}
 async function saveNewClient() {
   const name = document.getElementById('newClientName').value.trim();
   const phone = document.getElementById('newClientPhone').value.trim();
@@ -2311,6 +2343,13 @@ async function saveNewClient() {
     phone,
     pay: document.getElementById('newClientPay').value,
     visits: parseInt(document.getElementById('newClientVisits').value) || 12,
+    contractStartDate: document.getElementById('contractStartDate')?.value || '',
+visitFrequency: document.getElementById('visitFrequency')?.value || 'manual',
+visitSchedule: generateVisitSchedule(
+    document.getElementById('contractStartDate')?.value || '',
+    parseInt(document.getElementById('newClientVisits').value) || 12,
+    document.getElementById('visitFrequency')?.value || 'manual'
+),
     used: 0,
     value: parseInt(document.getElementById('newClientValue').value) || 0,
     status: 'active',
