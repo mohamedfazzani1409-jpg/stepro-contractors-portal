@@ -1689,6 +1689,8 @@ ${db.clients.map(c => `
 async function saveVisitReport() {
   const clientSelect = document.getElementById('reportClientSelect');
   const clientId = clientSelect ? clientSelect.value : '';
+  const selectedPests = Array.from(document.querySelectorAll('.pest-item.selected'))
+  .map(item => item.innerText.trim());
 
   if (!clientId) {
     showToast('⚠️ اختر العميل أولاً');
@@ -1719,6 +1721,7 @@ const fullReport = {
   type: report.type,
   materials: report.materials || '',
   notes: report.notes || '',
+  pests: selectedPests,
   date: new Date().toLocaleDateString('ar-SA'),
   status: 'مكتمل',
   createdAt: new Date().toISOString()
@@ -2512,6 +2515,7 @@ function openReportDetails(id) {
                 <div><b>التاريخ:</b> ${report.date || '-'}</div>
                 <div><b>المواد المستخدمة:</b> ${report.materials || 'غير مسجل'}</div>
                 <div><b>الملاحظات:</b> ${report.notes || 'لا توجد'}</div>
+                <div><b>الآفات المرصودة:</b> ${(report.pests || []).length ? report.pests.join('، ') : 'غير مسجل'}</div>
                 <div><b>الحالة:</b> ${report.status || 'مكتمل'}</div>
             </div>
 
