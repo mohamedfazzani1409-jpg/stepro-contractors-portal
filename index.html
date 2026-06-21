@@ -1237,7 +1237,7 @@ function getPanelHTML(id) {
     clients_list: employeeClients(),
     // ADMIN
     all_clients: adminClients(),
-    all_reports: adminReports(),
+    all_reports: adminAllReports(),
     all_visits: adminVisits(),
     emergency_admin: adminEmergency(),
     settings: adminSettings(),
@@ -1869,10 +1869,13 @@ function adminClients() {
 
 // ===== ADMIN REPORTS =====
 function adminReports() {
+  const allReports = (db.reports || []).sort((a, b) => (b.id || 0) - (a.id || 0));
+const threeDaysAgo = Date.now() - (3 * 24 * 60 * 60 * 1000);
+const recentReports = allReports.filter(r => (r.id || 0) >= threeDaysAgo);
   return `
     <div class="section-title">📊 التقارير والإحصائيات</div>
     <div class="stats-row cols-2">
-      <div class="stat-card">
+      <div class="stat-card" onclick="renderPanel('all_reports')">
         <span class="stat-icon">📋</span>
         <span class="stat-num green">${(db.reports || []).length}</span>
         <span class="stat-label">تقارير هذا الشهر</span>
@@ -1884,7 +1887,7 @@ function adminReports() {
       </div>
     </div>
     <div class="section-title">أحدث التقارير</div>
-   ${(db.reports || []).map(r => `
+   ${recentReports.map(r => `
       <div class="report-card" onclick="openReportDetails(${r.id})">
         <div class="report-icon">📄</div>
         <div class="report-info">
@@ -1896,7 +1899,24 @@ function adminReports() {
     `).join('')}
   `;
 }
+function adminAllReports() {
+    const allReports = (db.reports || []).sort((a, b) => (b.id || 0) - (a.id || 0));
 
+    return `
+        <div class="section-title">📊 جميع التقارير</div>
+
+        ${allReports.map(r => `
+            <div class="report-card" onclick="openReportDetails(${r.id})">
+                <div class="report-icon">📄</div>
+                <div class="report-info">
+                    <div class="report-title">${r.client} — ${r.type}</div>
+                    <div class="report-date">الفني: ${r.tech} | ${r.date}</div>
+                </div>
+                <span class="visit-badge done">مكتمل</span>
+            </div>
+        `).join('')}
+    `;
+}
 // ===== ADMIN VISITS =====
 function adminVisits() {
   return `
