@@ -1683,6 +1683,7 @@ async function saveVisitReport() {
 if (!db.reports) db.reports = [];
 
 db.reports.unshift({
+  id: Date.now(),
   client: db.clients.find(c => c.id == clientId)?.name || 'عميل',
   type: report.type,
   tech: report.employeeName,
@@ -1884,7 +1885,7 @@ function adminReports() {
     </div>
     <div class="section-title">أحدث التقارير</div>
    ${(db.reports || []).map(r => `
-      <div class="report-card" onclick="showToast('تم فتح التقرير')">
+      <div class="report-card" onclick="openReportDetails(${r.id})">
         <div class="report-icon">📄</div>
         <div class="report-info">
           <div class="report-title">${r.client} — ${r.type}</div>
@@ -2436,6 +2437,23 @@ function initPanelJS(id) {
   }, 100);
   if (id === 'emergency_admin') loadEmergencyRequests();
 }
+function openReportDetails(id) {
+    const report = (db.reports || []).find(r => r.id == id);
+
+    if (!report) {
+        showToast('التقرير غير موجود');
+        return;
+    }
+
+    alert(
+        'العميل: ' + report.client + '\n\n' +
+        'الفني: ' + report.tech + '\n\n' +
+        'نوع الزيارة: ' + report.type + '\n\n' +
+        'التاريخ: ' + report.date + '\n\n' +
+        'الحالة: ' + report.status
+    );
+}
+
 </script>
 </body>
 </html>
