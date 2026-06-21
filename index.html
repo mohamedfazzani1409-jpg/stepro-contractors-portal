@@ -1680,7 +1680,17 @@ async function saveVisitReport() {
     status: 'pending',
     createdAt: new Date().toISOString()
   };
+if (!db.reports) db.reports = [];
 
+db.reports.unshift({
+  client: db.clients.find(c => c.id == clientId)?.name || 'عميل',
+  type: report.type,
+  tech: report.employeeName,
+  date: new Date().toLocaleDateString('ar-SA'),
+  status: 'مكتمل'
+});
+
+saveDB();
   await firebase.database()
     .ref('serviceVisits')
     .push(report);
@@ -1863,7 +1873,7 @@ function adminReports() {
     <div class="stats-row cols-2">
       <div class="stat-card">
         <span class="stat-icon">📋</span>
-        <span class="stat-num green">0</span>
+        <span class="stat-num green">${(db.reports || []).length}</span>
         <span class="stat-label">تقارير هذا الشهر</span>
       </div>
       <div class="stat-card">
@@ -1873,7 +1883,7 @@ function adminReports() {
       </div>
     </div>
     <div class="section-title">أحدث التقارير</div>
-    ${[].map(r => `
+   ${(db.reports || []).map(r => `
       <div class="report-card" onclick="showToast('تم فتح التقرير')">
         <div class="report-icon">📄</div>
         <div class="report-info">
