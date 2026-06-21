@@ -1357,33 +1357,38 @@ function clientHome() {
 
 // ===== CLIENT REPORTS =====
 function clientReports() {
-  return `
-    <div class="section-title">📋 تقاريري الدورية</div>
-    ${[
-      
-    ].map(r => `
-      <div class="report-card" onclick="openModal('viewReport')">
-        <div class="report-icon">📄</div>
-        <div class="report-info">
-          <div class="report-title">${r.month} — ${r.type}</div>
-          <div class="report-date">الفني: ${r.tech}</div>
-        </div>
-        <span class="visit-badge done">مكتمل</span>
-        <span class="report-arrow">›</span>
-      </div>
-    `).join('')}
+    const clientReports = (db.reports || [])
+        .filter(r => r.clientId == currentClientId)
+        .sort((a, b) => (b.id || 0) - (a.id || 0));
 
-    <div class="section-title" style="margin-top:20px;">📸 صور الآفات المرصودة</div>
-    <div class="pest-grid">
-      <div class="pest-item selected"><span class="pest-emoji">🪳</span>صراصير</div>
-      <div class="pest-item"><span class="pest-emoji">🐀</span>قوارض</div>
-      <div class="pest-item"><span class="pest-emoji">🦟</span>بعوض</div>
-      <div class="pest-item"><span class="pest-emoji">🐜</span>نمل أبيض</div>
-      <div class="pest-item"><span class="pest-emoji">🦗</span>حشرات طائرة</div>
-      <div class="pest-item"><span class="pest-emoji">🕷️</span>عناكب</div>
-    </div>
-    <p style="font-size:12px; color:var(--text-light); text-align:center; margin-top:8px;">آخر رصد: صراصير — مارس 2025 (تمت المعالجة ✅)</p>
-  `;
+    return `
+        <div class="section-title">📄 تقاريري الدورية</div>
+
+        ${clientReports.length ? clientReports.map(r => `
+            <div class="report-card" onclick="openReportDetails(${r.id})">
+                <div class="report-icon">📄</div>
+                <div class="report-info">
+                    <div class="report-title">${r.client} — ${r.type}</div>
+                    <div class="report-date">الفني: ${r.tech} | ${r.date}</div>
+                </div>
+                <span class="visit-badge done">${r.status || 'مكتمل'}</span>
+                <span class="report-arrow">›</span>
+            </div>
+        `).join('') : '<div class="card">لا توجد تقارير مرفوعة حتى الآن</div>'}
+
+        <div class="section-title" style="margin-top:20px;">🪳 صور الآفات المرصودة</div>
+        <div class="pest-grid">
+            <div class="pest-item selected"><span class="pest-emoji">🪳</span>صرصور</div>
+            <div class="pest-item"><span class="pest-emoji">🐭</span>قوارض</div>
+            <div class="pest-item"><span class="pest-emoji">🦟</span>بعوض</div>
+            <div class="pest-item"><span class="pest-emoji">🐜</span>نمل أبيض</div>
+            <div class="pest-item"><span class="pest-emoji">🦗</span>حشرات</div>
+            <div class="pest-item"><span class="pest-emoji">✅</span>لا شيء</div>
+        </div>
+        <p style="font-size:12px; color:var(--text-light); text-align:center; margin-top:8px;">
+            ✅ تمت المعالجة حسب التقرير المرفوع
+        </p>
+    `;
 }
 
 // ===== CLIENT MAP =====
@@ -1684,6 +1689,7 @@ if (!db.reports) db.reports = [];
 
 db.reports.unshift({
   id: Date.now(),
+  clientId: parseInt(clientId),
   client: db.clients.find(c => c.id == clientId)?.name || 'عميل',
   type: report.type,
   tech: report.employeeName,
