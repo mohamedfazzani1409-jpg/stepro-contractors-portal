@@ -2501,15 +2501,27 @@ function openReportDetails(id) {
         return;
     }
 
-    alert(
-        'العميل: ' + report.client + '\n\n' +
-        'الفني: ' + report.tech + '\n\n' +
-        'نوع الزيارة: ' + report.type + '\n\n' +
-        'التاريخ: ' + report.date + '\n\n' +
-        'المواد المستخدمة: ' + (report.materials || 'غير مسجل') + '\n\n' +
-'الملاحظات: ' + (report.notes || 'لا توجد') + '\n\n' +
-        'الحالة: ' + report.status
-    );
+    const details = `
+        <div class="card" style="margin-bottom:16px;">
+            <div class="section-title">📄 تفاصيل التقرير</div>
+
+            <div style="line-height:2.1; font-size:15px;">
+                <div><b>العميل:</b> ${report.client || 'غير محدد'}</div>
+                <div><b>الفني:</b> ${report.tech || 'غير محدد'}</div>
+                <div><b>نوع الزيارة:</b> ${report.type || 'زيارة فنية'}</div>
+                <div><b>التاريخ:</b> ${report.date || '-'}</div>
+                <div><b>المواد المستخدمة:</b> ${report.materials || 'غير مسجل'}</div>
+                <div><b>الملاحظات:</b> ${report.notes || 'لا توجد'}</div>
+                <div><b>الحالة:</b> ${report.status || 'مكتمل'}</div>
+            </div>
+
+            <button class="submit-btn" style="margin-top:16px;" onclick="renderPanel(currentPanel)">
+                رجوع
+            </button>
+        </div>
+    `;
+
+    document.getElementById('appContent').innerHTML = details;
 }
 
 </script>
