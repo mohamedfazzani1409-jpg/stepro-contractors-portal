@@ -51,6 +51,22 @@
         console.log('خطأ تحميل:', e);
       }
     };
+    window.loadReportsFromFirebase = async function() {
+  try {
+    const snapshot = await db_fire.ref('reports').get();
+
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+
+      db.reports = Object.values(data)
+        .sort((a, b) => (b.id || 0) - (a.id || 0));
+
+      saveDB();
+    }
+  } catch(e) {
+    console.log('خطأ تحميل التقارير:', e);
+  }
+};
 
     window.saveClientToFirebase = async function(client) {
       try {
@@ -1140,6 +1156,7 @@ async function doLogin() {
     document.getElementById('loginScreen').classList.remove('active');
     document.getElementById('appScreen').classList.add('active');
     await window.loadClientsFromFirebase();
+    await window.loadReportsFromFirebase();
     renderNav();
     renderPanel('home');
     return;
@@ -1689,22 +1706,31 @@ async function saveVisitReport() {
 };
 if (!db.reports) db.reports = [];
 
-db.reports.unshift({
-    id: Date.now(),
-    clientId: parseInt(clientId),
-    client: db.clients.find(c => c.id == clientId)?.name || 'عميل',
-    type: report.type,
-    tech: report.employeeName,
-    date: new Date().toLocaleDateString('ar-SA'),
-    materials: report.materials,
-    notes: report.notes,
-    status: 'مكتمل'
-});
+
 
 saveDB();
-  await firebase.database()
-    .ref('serviceVisits')
-    .push(report);
+  const reportId = Date.now();
+
+const fullReport = {
+  id: reportId,
+  clientId: parseInt(clientId),
+  client: db.clients.find(c => c.id == clientId)?.name || 'عميل',
+  tech: report.employeeName,
+  type: report.type,
+  materials: report.materials || '',
+  notes: report.notes || '',
+  date: new Date().toLocaleDateString('ar-SA'),
+  status: 'مكتمل',
+  createdAt: new Date().toISOString()
+};
+
+if (!db.reports) db.reports = [];
+db.reports.unshift(fullReport);
+saveDB();
+
+await firebase.database()
+  .ref('reports/' + reportId)
+  .set(fullReport);
 
   showToast('✅ تم رفع التقرير وإرساله للإدارة للاعتماد');
 }
