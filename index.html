@@ -1643,7 +1643,7 @@ ${db.clients.map(c => `
       </div>
       <div class="form-group">
         <label class="form-label">نوع الخدمة</label>
-        <select class="form-select">
+        <select class="form-select" id="serviceType">
           <option>رش دوري</option>
           <option>فحص مصائد الطعوم</option>
           <option>معالجة قوارض</option>
@@ -1664,11 +1664,11 @@ ${db.clients.map(c => `
       </div>
       <div class="form-group">
         <label class="form-label">المواد المستخدمة</label>
-        <input type="text" class="form-input" placeholder="مثال: بيفلوثرين 100ml + طعم جل صراصير">
+        <input type="text" class="form-input" id="materialsInput" placeholder="مثال: بيفلوثرين 100ml + طعم جل صراصير">
       </div>
       <div class="form-group">
         <label class="form-label">ملاحظات الزيارة</label>
-        <textarea class="form-textarea" placeholder="اكتب ملاحظاتك هنا..."></textarea>
+        <textarea class="form-textarea" id="notesInput" placeholder="اكتب ملاحظاتك هنا..."></textarea>
       </div>
       <div class="form-group">
         <label class="form-label">📸 إرفاق صور (اختياري)</label>
