@@ -1712,7 +1712,21 @@ if (!db.reports) db.reports = [];
 
 saveDB();
   const reportId = Date.now();
+const reportImages = [];
 
+const files = document.getElementById('reportImages')?.files || [];
+
+for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+
+    const base64 = await new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
+        reader.readAsDataURL(file);
+    });
+
+    reportImages.push(base64);
+}
 const fullReport = {
   id: reportId,
   clientId: parseInt(clientId),
@@ -1722,6 +1736,7 @@ const fullReport = {
   materials: report.materials || '',
   notes: report.notes || '',
   pests: selectedPests,
+  images: reportImages,
   date: new Date().toLocaleDateString('ar-SA'),
   status: 'مكتمل',
   createdAt: new Date().toISOString()
@@ -2517,6 +2532,27 @@ function openReportDetails(id) {
                 <div><b>الملاحظات:</b> ${report.notes || 'لا توجد'}</div>
                 <div><b>الآفات المرصودة:</b> ${(report.pests || []).length ? report.pests.join('، ') : 'غير مسجل'}</div>
                 <div><b>الحالة:</b> ${report.status || 'مكتمل'}</div>
+                <div style="margin-top:20px;">
+    <b>الصور المرفقة:</b>
+</div>
+
+<div style="
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+margin-top:10px;
+">
+${(report.images || []).map(img => `
+    <img src="${img}"
+         style="
+         width:120px;
+         height:120px;
+         object-fit:cover;
+         border-radius:10px;
+         border:1px solid #ddd;
+         ">
+`).join('')}
+</div>
             </div>
 
             <button class="submit-btn" style="margin-top:16px;" onclick="renderPanel(currentPanel)">
